@@ -12,7 +12,7 @@ class Tensor:
     def __init__(self, data, name=None, input_tensor=False,
                     param_tensor=False):
         self.data = data.astype(np.float32)
-        self.grads = np.zeros_like(data)
+        self.grad = np.zeros_like(data)
         self.input_tensor = input_tensor
         self.param_tensor = param_tensor
 
@@ -36,6 +36,10 @@ class Tensor:
 
     def __str__(self):
         return str(self.name)
+
+    @property
+    def shape(self):
+        return self.data.shape
 
     def __add__(self, other_tensor):
         return ops.Add(self, other_tensor)
@@ -64,6 +68,15 @@ class Tensor:
 
     def squeeze(self):
         return ops.Squeeze(self)
+
+    def unsqueeze(self, axis=0):
+        return ops.Unsqueeze(self, axis=axis)
+
+    def repeat(self, axis=0, n=1):
+        return ops.Repeat(self, axis=axis, n=n)
+
+    def flatten(self):
+        return ops.Flatten(self)
 
 
 class InputTensor(Tensor):

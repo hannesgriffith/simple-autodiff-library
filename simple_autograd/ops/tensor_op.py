@@ -1,3 +1,5 @@
+from collections import Iterable
+
 from simple_autograd.tensor import Tensor
 from simple_autograd.autograd import add_op_to_graph
 from simple_autograd.graph import ComputationalGraphOp
@@ -19,7 +21,7 @@ class TensorOp:
     order they are given as input in forward."""
     op_count = 0
 
-    def __new__(cls, *input_tensors):
+    def __new__(cls, *input_tensors, **kwargs):
         tensorop_instance = super().__new__(cls)
         cls.__init__(tensorop_instance)
 
@@ -27,7 +29,7 @@ class TensorOp:
             raise TypeError(f"{cls.__class__.__name__} doesn't have correct \
                 interface to add to computational graph.")
 
-        output_tensor = tensorop_instance.forward(*input_tensors)
+        output_tensor = tensorop_instance.forward(*input_tensors, **kwargs)
         input_tensors = [t for t in input_tensors if isinstance(t, Tensor)]
 
         if not isinstance(output_tensor, Tensor):
@@ -63,14 +65,23 @@ class TensorOp:
 
             input_tensor_data.append(tensor_data)
 
-        output_data, self.cache = self._forward(*input_tensor_data, **kwargs)
+        output_data, cache = self._forward(*input_tensor_data, **kwargs)
+
+        self.cache = cache
+        self.kwargs = kwargs
+
         return Tensor(output_data, name=self.__class__.__name__)
 
     def backward(self, upstream_grads):
-        return self._backward(upstream_grads, self.cache)
+        grads = self._backward(upstream_grads, self.cache, **self.kwargs)
 
-    def _forward(self, *input_tensor_data):
+        if not isinstance(grads, tuple):
+            raise TypeError("Must return tuple of grads wrt input tensors.")
+
+        return grads
+
+    def _forward(self, *input_tensor_data, **kwargs):
         raise NotImplemented("Must implement _forward to subclass TensorOp.")
 
-    def _backward(self, upstream_grads, cache):
+    def _backward(self, upstream_grad, cache):
         raise NotImplemented("Must implement _backward to subclass TensorOp.")

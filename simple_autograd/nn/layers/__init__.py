@@ -1,1 +1,5 @@
-from simple_autograd.nn.layers.as_layer import AsLayer, MSELoss
+from simple_autograd.nn.layers.layer import Layer, AsLayer
+from simple_autograd.nn.layers.losses import MSELoss
+from simple_autograd.nn.layers.activations import ReLU, Sigmoid, Softmax
+# from simple_autograd.nn.layers.mlp import ...
+# from simple_autograd.nn.layers.rnn import ...

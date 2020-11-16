@@ -4,5 +4,5 @@ def mean_squared_error(output, target):
     diff = (output - target) ** 2.
     return diff.mean()
 
-def swish():
+def swish(x):
     pass

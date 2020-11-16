@@ -10,14 +10,15 @@ class SGDOptimiser:
         self.param_tensors = get_all_parameter_tensors()
         self.grad_mod = grad_mod if grad_mod is not None else lambda x: x
 
-    def _calculate_update(self, grad, idx):
-        raise NotImplemented("Must implement to subclass SGDOptimiser.")
-
     def step(self):
-        for idx, param_tensor in enumerate(self.param_tensors):
-            grad = self.grad_mod(param_tensor.grads)
-            update = self._calculate_update(grad, idx)
-            param_tensor.data -= update
+        for param_idx, param_tensor in enumerate(self.param_tensors):
+            grad = self.grad_mod(param_tensor.grad)
+            update = self._calculate_update(grad, param_idx)
+            param_tensor.data += update
+            # print(param_tensor.data, grad, update)
+
+    def _calculate_update(self, grad, param_idx):
+        raise NotImplemented("Must implement to subclass SGDOptimiser.")
 
 
 class SGD(SGDOptimiser):
@@ -28,7 +29,7 @@ class SGD(SGDOptimiser):
         self.momentum = momentum
         self.history = [np.zeros_like(t) for t in self.param_tensors]
 
-    def _calculate_update(self, grad, idx):
-        update = self.momentum * self.history[idx] + self.lr * grad
-        self.history[idx] = update.copy()
+    def _calculate_update(self, grad, param_idx):
+        update = self.momentum * self.history[param_idx] - self.lr * grad
+        self.history[param_idx] = update.copy()
         return update

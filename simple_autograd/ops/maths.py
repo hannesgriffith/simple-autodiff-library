@@ -20,7 +20,7 @@ class Subtract(TensorOp):
         return tensor_data_1 - tensor_data_2, ()
 
     def _backward(self, upstream_grad, _):
-        return (upstream_grad, upstream_grad)
+        return (upstream_grad, -upstream_grad)
 
 
 class Power(TensorOp):
@@ -34,6 +34,10 @@ class Power(TensorOp):
         tensor_data, order_scalar = cache
         grad = order_scalar * tensor_data ** (order_scalar - 1)
         return (grad * upstream_grad,)
+
+
+class Exp(TensorOp):
+    pass
 
 
 class MatMul(TensorOp):
@@ -63,6 +67,7 @@ class Sum(TensorOp):
 class Mean(TensorOp):
     """Mean over all elements in a tensor: mean(t)"""
     def _forward(self, tensor_data):
+        assert tensor_data.size > 0
         tensor_shape = tensor_data.shape
         factor = 1. / float(tensor_data.size)
         output = np.sum(tensor_data) * factor

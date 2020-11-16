@@ -18,24 +18,21 @@ class AutoGradManager:
         self.graph.add_op(op, input_tensors, output_tensor)
 
     def backward(self, start_tensor_name):
-        upstream_grads = {}
+        self.tensor_registry.clear_grads()
         start_tensor = self.tensor_registry[start_tensor_name]
-        upstream_grads[start_tensor_name] = np.ones_like(start_tensor.data)
+        start_grad = np.ones_like(start_tensor.data)
+        self.tensor_registry[start_tensor_name].grad = start_grad
 
         for backprop_node in self.graph.backprop_iterator(start_tensor_name):
             op = backprop_node["op"]
             input_tensor_names = backprop_node["in"]
             output_tensor_name = backprop_node["out"]
 
-            grads = op.backward(self.tensor_registry[output_tensor_name].data)
+            grads = op.backward(self.tensor_registry[output_tensor_name].grad)
 
             for input_tensor_name, grad in zip(input_tensor_names, grads):
-                self.tensor_registry[input_tensor_name].grads += grad
-
-                if input_tensor_name in upstream_grads:
-                    upstream_grads[input_tensor_name] += grad
-                else:
-                    upstream_grads[input_tensor_name] = grad
+                self.tensor_registry[input_tensor_name].grad += grad
+                # print(input_tensor_name, grad)
 
         self.clean_up()
 
@@ -65,6 +62,10 @@ class TensorRegistry(dict):
 
         self[tensor.name] = tensor
 
+    def clear_grads(self):
+        for tensor in self.values():
+            tensor.grad = np.zeros_like(tensor.data)
+
     @property
     def parameter_tensors(self):
         return [t for t in self.values() if t.param_tensor]
@@ -90,15 +91,18 @@ def print_tensor_registry():
     pprint(GLOBAL_MANAGER.tensor_registry)
 
 def draw_computational_graph():
-    GLOBAL_MANAGER.graph.visualise()
+    GLOBAL_MANAGER.graph.visualise_nice()
 
 def _debug_get_tensor_registry():
     return GLOBAL_MANAGER.tensor_registry
 
-def _debug_get_computational():
+def _debug_get_computational_graph():
     return GLOBAL_MANAGER.graph
 
 def _debug_finalise_graph():
     GLOBAL_MANAGER.graph._finalise_graph()
+
+def _debug_clean_up():
+    GLOBAL_MANAGER.clean_up()
 
 new_session()

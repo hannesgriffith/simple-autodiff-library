@@ -60,6 +60,8 @@ class ComputationalGraph(nx.DiGraph):
     def backprop_iterator(self, start_tensor_name):
         self._finalise_graph()
         start_node = self._get_node_by_ouput_tensor(start_tensor_name)
+        yield self.nodes[start_node]
+
         backprop_graph = self._get_graph_without_attributes().reverse()
         contributing_nodes = descendants(backprop_graph, start_node)
 
@@ -70,6 +72,42 @@ class ComputationalGraph(nx.DiGraph):
     def visualise(self, graph=None):
         graph = graph if graph is not None else self
         nx.draw(graph, with_labels=True, font_weight='bold')
+        plt.show()
+
+    def visualise_nice(self, graph=None):
+        graph = graph if graph is not None else self
+
+        G = nx.DiGraph()
+        G.add_nodes_from(self.nodes)
+
+        tensors = set()
+        for node_name in self.nodes:
+            tensors.add(self.nodes[node_name]["out"])
+            for in_node in self.nodes[node_name]["in"]:
+                tensors.add(in_node)
+
+        G.add_nodes_from(tensors)
+
+        for node_name in self.nodes:
+            node = self.nodes[node_name]
+            G.add_edge(node_name, node["out"])
+            G.add_edges_from([(n, node_name) for n in node["in"]])
+
+        values = []
+        for node_name in G.nodes():
+            if "Op:" in node_name:
+                values.append(2)
+            else:
+                if "Input" in node_name:
+                    values.append(1)
+                elif "Param" in node_name:
+                    values.append(0)
+                else:
+                    values.append(3)
+
+        plt.figure(figsize=(12, 12))
+        nx.draw(G, cmap=plt.get_cmap('Accent'), node_color=values,
+                with_labels=True, font_color='black')
         plt.show()
 
 
