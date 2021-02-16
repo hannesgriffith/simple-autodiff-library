@@ -1,8 +1,8 @@
 import numpy as np
 
-from simple_autograd.nn.layers import Layer, AsLayer
-import simple_autograd.nn.functional as F
-from simple_autograd import ops
+from simple_autodiff.nn.layers import Layer, AsLayer
+import simple_autodiff.nn.functional as F
+from simple_autodiff import ops
 
 
 class ReLU(AsLayer):

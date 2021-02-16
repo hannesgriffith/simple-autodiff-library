@@ -2,18 +2,27 @@ from pprint import pprint
 
 import numpy as np
 
-from simple_autograd.graph import ComputationalGraph, GraphDefinitionError
+from simple_autodiff.graph import ComputationalGraph, ComputationalGraphOp
 
 
-class AutoGradManager:
-    """Holds the computational graph and references to all tensors. Executes
-    backpropogation on the computational graph."""
+class GraphDefinitionError(Exception):
+    """Error due to defining graph illegally."""
+    pass
+
+
+class AutoDiffManager:
+    """Manager for computational graph and tensor registry."""
     def __init__(self):
         self.graph = ComputationalGraph()
         self.tensor_registry = TensorRegistry()
         self.saved_parameters = {}
 
     def add_op_to_graph(self, op, input_tensors, output_tensor):
+        if not isinstance(op, ComputationalGraphOp):
+            raise TypeError(f"{ComputationalGraphOp.__class__.__name__} \
+                doesn't have correct interface to add to the computational \
+                graph.")
+
         self.tensor_registry.add_tensor(output_tensor)
         self.graph.add_op(op, input_tensors, output_tensor)
 
@@ -32,7 +41,6 @@ class AutoGradManager:
 
             for input_tensor_name, grad in zip(input_tensor_names, grads):
                 self.tensor_registry[input_tensor_name].grad += grad
-                # print(input_tensor_name, grad)
 
         self.clean_up()
 
@@ -47,6 +55,7 @@ class AutoGradManager:
 
 
 class TensorRegistry(dict):
+    """Dict of all tensors in graph, referenced by tensor name."""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.op_already_added_to_graph = False
@@ -63,17 +72,19 @@ class TensorRegistry(dict):
         self[tensor.name] = tensor
 
     def clear_grads(self):
+        """Clear grads on all tensors in the graph (before new backprop)."""
         for tensor in self.values():
             tensor.grad = np.zeros_like(tensor.data)
 
     @property
     def parameter_tensors(self):
+        """Return all parameter (/trainable) tensors in the graph."""
         return [t for t in self.values() if t.param_tensor]
 
 
 def new_session():
     global GLOBAL_MANAGER
-    GLOBAL_MANAGER = AutoGradManager()
+    GLOBAL_MANAGER = AutoDiffManager()
 
 def add_op_to_graph(op, input_tensors, output_tensor):
     return GLOBAL_MANAGER.add_op_to_graph(op, input_tensors, output_tensor)
@@ -81,17 +92,20 @@ def add_op_to_graph(op, input_tensors, output_tensor):
 def add_tensor_to_registry(tensor):
     return GLOBAL_MANAGER.tensor_registry.add_tensor(tensor)
 
-def backward(tensor_name):
-    return GLOBAL_MANAGER.backward(tensor_name)
-
 def get_all_parameter_tensors():
     return GLOBAL_MANAGER.tensor_registry.parameter_tensors
 
-def print_tensor_registry():
-    pprint(GLOBAL_MANAGER.tensor_registry)
+def backward(tensor_name):
+    return GLOBAL_MANAGER.backward(tensor_name)
 
-def draw_computational_graph():
+def reset_graph():
+    GLOBAL_MANAGER.graph._finalise_graph()
+    GLOBAL_MANAGER.clean_up()
+
+def visualise_graph():
+    GLOBAL_MANAGER.graph._finalise_graph()
     GLOBAL_MANAGER.graph.visualise_nice()
+    GLOBAL_MANAGER.clean_up()
 
 def _debug_get_tensor_registry():
     return GLOBAL_MANAGER.tensor_registry
@@ -99,10 +113,7 @@ def _debug_get_tensor_registry():
 def _debug_get_computational_graph():
     return GLOBAL_MANAGER.graph
 
-def _debug_finalise_graph():
-    GLOBAL_MANAGER.graph._finalise_graph()
-
-def _debug_clean_up():
-    GLOBAL_MANAGER.clean_up()
+def _debug_print_tensor_registry():
+    pprint(_debug_get_tensor_registry())
 
 new_session()

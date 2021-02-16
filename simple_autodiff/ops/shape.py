@@ -1,6 +1,6 @@
 import numpy as np
 
-from simple_autograd.ops.tensor_op import TensorOp
+from simple_autodiff.ops.tensor_op import TensorOp
 
 
 class Transpose(TensorOp):

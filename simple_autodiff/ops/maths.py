@@ -1,6 +1,6 @@
 import numpy as np
 
-from simple_autograd.ops.tensor_op import TensorOp
+from simple_autodiff.ops.tensor_op import TensorOp
 
 
 class Add(TensorOp):
@@ -24,25 +24,30 @@ class Subtract(TensorOp):
 
 
 class Power(TensorOp):
-    """Tensor element-wise to the power of scalar: t ** order"""
-    def _forward(self, tensor_data, order_scalar):
-        output = tensor_data ** order_scalar
-        cache = (tensor_data, order_scalar)
-        return output, cache
+    """Tensor element-wise to the power of scalar: t ** exponent"""
+    def _forward(self, tensor_data, scalar_exponent=2):
+        output = tensor_data ** scalar_exponent
+        return output, tensor_data
 
-    def _backward(self, upstream_grad, cache):
-        tensor_data, order_scalar = cache
-        grad = order_scalar * tensor_data ** (order_scalar - 1)
+    def _backward(self, upstream_grad, tensor_data, scalar_exponent=2):
+        grad = scalar_exponent * tensor_data ** (scalar_exponent - 1)
         return (grad * upstream_grad,)
 
 
 class Exp(TensorOp):
-    pass
+    """e to power of tensor, element-wise: e ** t"""
+    def _forward(self, tensor_data):
+        output = np.exp(tensor_data)
+        return output, output
+
+    def _backward(self, upstream_grad, output):
+        return (output * upstream_grad,)
 
 
 class MatMul(TensorOp):
     """Matrix multiplication of two tensors: t1 * t2"""
     def _forward(self, tensor_data_1, tensor_data_2):
+        assert tensor_data_1.shape[-1] == tensor_data_2.shape[0]
         output = np.matmul(tensor_data_1, tensor_data_2)
         cache = (tensor_data_1, tensor_data_2)
         return output, cache

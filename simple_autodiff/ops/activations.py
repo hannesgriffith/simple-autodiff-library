@@ -1,6 +1,6 @@
 import numpy as np
 
-from simple_autograd.ops.tensor_op import TensorOp
+from simple_autodiff.ops.tensor_op import TensorOp
 
 
 class ReLU(TensorOp):
@@ -25,7 +25,9 @@ class Sigmoid(TensorOp):
 
 
 class Softmax(TensorOp):
-    """Softmax function for MLP over axis: e^xi / sum(e^xi), for i in axis."""
+    """Softmax over second dimension for data of shape
+    [n examples, n classes]: e^xi / sum(e^xi), for i in axis.
+    """
     def _forward(self, tensor_data):
         exp_x = np.exp(tensor_data)
         softmax = exp_x / np.sum(exp_x, axis=1, keepdims=True)

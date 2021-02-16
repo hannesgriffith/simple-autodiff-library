@@ -1,6 +1,6 @@
 import numpy as np
 
-from simple_autograd.autograd import get_all_parameter_tensors
+from simple_autodiff.autodiff import get_all_parameter_tensors
 
 
 class SGDOptimiser:

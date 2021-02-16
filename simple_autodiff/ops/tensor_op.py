@@ -1,33 +1,27 @@
-from collections import Iterable
+import numpy as np
 
-from simple_autograd.tensor import Tensor
-from simple_autograd.autograd import add_op_to_graph
-from simple_autograd.graph import ComputationalGraphOp
-
-def not_constant_scalar(t):
-    return type(t) not in [int, float]
+from simple_autodiff.tensor import Tensor
+from simple_autodiff.autodiff import add_op_to_graph
 
 
 class TensorOp:
     """To create a new Op just subclass TensorOp and implement _forward and
     _backward methods. Inputs for _forward is the data from the input tensors
-    for the operation. Return any values you would like to cache for backprop
+    for the operation. Any inputs that are not tensors and any options for the
+    op should be kwargs. Return any values you would like to cache for backprop
     in a tuple after the output value. The input to _backward is the upstream
     gradient and the cache from the forward pass. Calculate the gradients for
     each tensor and return them. NOTE: only ops that produce a single output
     tensor are currently supported.
 
     IMPORTANT: return the grads for the input tensors in a tuple in the same
-    order they are given as input in forward."""
+    order they are given as input in forward.
+    """
     op_count = 0
 
     def __new__(cls, *input_tensors, **kwargs):
         tensorop_instance = super().__new__(cls)
         cls.__init__(tensorop_instance)
-
-        if not isinstance(tensorop_instance, ComputationalGraphOp):
-            raise TypeError(f"{cls.__class__.__name__} doesn't have correct \
-                interface to add to computational graph.")
 
         output_tensor = tensorop_instance.forward(*input_tensors, **kwargs)
         input_tensors = [t for t in input_tensors if isinstance(t, Tensor)]
@@ -57,9 +51,9 @@ class TensorOp:
         input_tensor_data = []
         for tensor in input_tensors:
             if isinstance(tensor, Tensor):
-                tensor_data = tensor.data.copy()
-            elif isinstance(tensor, int) or isinstance(tensor, float):
-                tensor_data = tensor
+                tensor_data = tensor.data.copy().astype(np.float32)
+            # elif isinstance(tensor, int) or isinstance(tensor, float):
+            #     tensor_data = tensor
             else:
                 raise TypeError(f"Illegal input type: {type(tensor)}")
 

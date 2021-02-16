@@ -1,6 +1,6 @@
-# simple-autograd-library
+# simple-autodiff-library
 
-Basic implementation of an autograd library, based loosely on the PyTorch and TensorFlow API's and naming, and only using NumPy and NetworkX. simple-autograd-library also includes some functionality to build and train deep learning models. The [features](Features) and [limitations](Limitations) of the library are summarised below. Uses of the library are shown in various Jupyter notebooks, as referenced in [Usage](Usage), which also gives a high-level summary for usage.
+Basic implementation of an autodiff library, based loosely on the PyTorch and TensorFlow API's and naming, and only using NumPy and NetworkX. simple-autodiff-library also includes some functionality to build and train deep learning models. The [features](Features) and [limitations](Limitations) of the library are summarised below. Uses of the library are shown in various Jupyter notebooks, as referenced in [Usage](Usage), which also gives a high-level summary for usage.
 
 ## Usage
 

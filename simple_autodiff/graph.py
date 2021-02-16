@@ -6,11 +6,6 @@ from networkx.algorithms.dag import descendants
 import matplotlib.pyplot as plt
 
 
-class GraphDefinitionError(Exception):
-    """Error due to defining graph illegally."""
-    pass
-
-
 class ComputationalGraph(nx.DiGraph):
     """Stores relationship between ops and tensors during forward pass and
     works out order of execution for backprop."""

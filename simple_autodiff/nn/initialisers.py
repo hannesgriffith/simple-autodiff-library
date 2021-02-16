@@ -1,5 +1,8 @@
 import numpy as np
 
+def zeros_initialiser(tensor_shape):
+    return np.zeros(shape=tensor_shape)
+
 def uniform_initialiser(tensor_shape):
     return np.random.uniform(size=tensor_shape)
 
